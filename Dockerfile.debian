@@ -1,0 +1,62 @@
+# syntax=docker/dockerfile:1.4
+# Multi-stage build: produce wheels in a builder stage to improve caching
+FROM python:3.13-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install build dependencies needed to build binary wheels if any
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       build-essential \
+       gcc \
+       libffi-dev \
+       libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy only dependency manifests to maximize cache reuse
+COPY requirements/requirements.txt requirements/requirements-test.txt /app/requirements/
+
+# Build wheels for cached, repeatable dependency install
+RUN python -m pip install --upgrade pip wheel setuptools \
+    && if [ -f /app/requirements/requirements.txt ]; then pip wheel --wheel-dir /wheels -r /app/requirements/requirements.txt; fi
+
+# Runtime image
+FROM python:3.13-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/home/appuser/.local/bin:$PATH"
+
+# Create a non-root user for better security
+RUN groupadd --gid 1000 appuser \
+    && useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser
+
+WORKDIR /app
+
+# Copy built wheels (if any) and install runtime dependencies
+COPY --from=builder /wheels /wheels
+COPY requirements/requirements.txt /app/requirements/requirements.txt
+
+RUN python -m pip install --upgrade pip \
+    && if [ -d /wheels ] && [ "$(ls -A /wheels 2>/dev/null)" ]; then \
+         pip install --no-index --find-links /wheels -r /app/requirements/requirements.txt; \
+       else \
+         pip install --no-cache-dir -r /app/requirements/requirements.txt; \
+       fi \
+    && rm -rf /wheels /root/.cache/pip
+
+# Copy application sources (after deps so cache is effective)
+COPY . /app
+
+# Ensure app files are owned by non-root user
+RUN chown -R appuser:appuser /app
+
+USER appuser
+
+# Minimal default command to run the CLI tool
+ENTRYPOINT ["python3", "calcolatrice.py"]

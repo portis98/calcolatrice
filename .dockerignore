@@ -1,0 +1,19 @@
+# Exclude files that should not be copied into the image
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+.env
+.envrc
+*.sqlite3
+*.db
+.DS_Store
+.idea/
+.vscode/
+.git/
+.gitignore
+tests/
+README.md
