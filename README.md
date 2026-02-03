@@ -51,4 +51,4 @@ docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile.alpine -t p
 
 ## Aggiunti workflow GitHub action
 
--pytest.yml: esecuzione dei test con pytest
+- pytest.yml: esecuzione dei test con pytest
