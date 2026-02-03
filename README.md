@@ -48,3 +48,7 @@ Per costruire una immagine multi archittettura e caricare su Docker Hub
 ```shell
 docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile.alpine -t poldis98/fullstack-calcolatrice:alpine --push .
 ```
+
+## Aggiunti workflow GitHub action
+
+-pytest.yml: esecuzione dei test con pytest
