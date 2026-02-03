@@ -16,5 +16,6 @@ uv pip install -r requirements/requirements.txt
 
 ```shell
 uv run python calcolatrice.py
+python3 calcolatrice.py
 ```
 
