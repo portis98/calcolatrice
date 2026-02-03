@@ -44,3 +44,7 @@ Per costrire l'immagine Docker e caricarla su DockerHub
 docker build -f Dockerfile.alpine -t poldis98/fullstack-calcolatrice:alpine .
 docker push poldis98/fullstack-calcolatrice:alpine
 ```
+Per costruire una immagine multi archittettura e caricare su Docker Hub
+```shell
+docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile.alpine -t poldis98/fullstack-calcolatrice:alpine --push .
+```
