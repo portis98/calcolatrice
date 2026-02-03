@@ -1,0 +1,3 @@
+# requirements/requirements.in
+
+-r base.in
